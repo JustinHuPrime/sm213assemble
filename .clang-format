@@ -1,1 +1,6 @@
-/home/justin/School/CPSC 213/stripc-sm213/sm213common/.clang-format
+DisableFormat: false
+Language: Cpp
+
+BasedOnStyle: Google
+DerivePointerAlignment: false
+PointerAlignment: Left
