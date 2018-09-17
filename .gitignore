@@ -1,0 +1,7 @@
+sm213interp
+sm213interpTest
+bin/
+dependencies/
+tests/bin/
+tests/dependencies/
+*.img
