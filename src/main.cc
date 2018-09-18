@@ -27,12 +27,12 @@
 #include <vector>
 
 namespace {
+using sm213assembler::io::IllegalCharacter;
 using sm213assembler::io::Token;
 using sm213assembler::io::tokenize;
 using sm213assembler::model::AssemblyStatement;
 using sm213assembler::model::makeAst;
 using std::cerr;
-using std::cout;  // testing only
 using std::ifstream;
 using std::ofstream;
 using std::string;
@@ -59,11 +59,20 @@ int main(int argc, char* argv[]) {
     return EXIT_FAILURE;
   }
 
-  vector<Token> tokens = tokenize(fin);
-  for (Token t : tokens) {
-    cout << t.lineNo << ':' << t.charNo << ':' << t.value << '\n';
+  vector<Token> tokens;
+  try {
+    tokens = tokenize(fin);
+  } catch (const IllegalCharacter& e) {
+    cerr << e.what() << '\n';
+    return EXIT_FAILURE;
   }
-  vector<AssemblyStatement> ast = makeAst(tokens);
+  vector<AssemblyStatement> ast;
+  try {
+    ast = makeAst(tokens);
+  } catch (...) {
+    // TODO: write exception handling code.
+    return EXIT_FAILURE;
+  }
 
   ofstream fout;
   fout.open(destinationFileName,
