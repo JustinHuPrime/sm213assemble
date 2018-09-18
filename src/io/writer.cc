@@ -26,8 +26,13 @@ void writeBinary(const vector<uint8_t>& binary, const string& fn) {
   ofstream fout;
   fout.open(fn,
             std::ios_base::binary | std::ios_base::trunc | std::ios_base::out);
+
   if (!fout.is_open()) throw FileOpenError();
 
+  for (uint8_t byte : binary) fout << byte;
+
+  fout.flush();
+  fout.close();
   return;
 }
 }  // namespace sm213assembler::io
