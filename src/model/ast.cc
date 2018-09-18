@@ -23,5 +23,7 @@ namespace {}  // namespace
 vector<AssemblyStatement> makeAst(vector<Token>&) {
   return vector<AssemblyStatement>();
 }
-void generateBinary(vector<AssemblyStatement>&, ofstream& fout) { return; }
+void generateBinary(vector<AssemblyStatement>&, ofstream& fout) noexcept {
+  return;
+}
 }  // namespace sm213assembler::model
