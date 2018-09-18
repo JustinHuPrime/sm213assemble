@@ -26,15 +26,16 @@
 namespace sm213assembler::model {
 namespace {
 using sm213assembler::io::Token;
+using std::exception;
 using std::ofstream;
 using std::string;
 using std::vector;
 }  // namespace
 
-// AssemblyStatement ::= <DotStatement>
-//                     | <Label> <OpcodeStatement>
-// DotStatement ::= . pos <HexLiteral>
-//                | <LabelStatement> . long <HexLiteral>
+// AssemblyStatement ::= <LabelStatemet> <DotStatement>
+//                     | <LabelStatemet> <OpcodeStatement>
+// DotStatement ::= .pos <HexLiteral>
+//                | .(long|data) <HexLiteral>
 // HexLiteral ::= 0x[0-9]+
 // Label ::= [a-zA-Z_][a-zA-Z_0-9]*
 // LabelStatement ::= <Label> :
@@ -153,7 +154,16 @@ struct BranchCond : AS {
 };
 }  // namespace ast
 
-vector<AssemblyStatement> makeAst(vector<Token>&);
+class ParseError : public exception {
+ public:
+  ParseError(unsigned lineNo, unsigned charNo, string msg) noexcept;
+  const char* what() const noexcept override;
+
+ private:
+  string msg;
+};
+
+vector<AssemblyStatement> makeAst(const vector<Token>&);
 void generateBinary(vector<AssemblyStatement>&, ofstream&) noexcept;
 }  // namespace sm213assembler::model
 
