@@ -33,15 +33,15 @@ using std::vector;
 
 struct Token {
   string value;
-  int lineNo;
-  int charNo;
+  unsigned lineNo;
+  unsigned charNo;
 
-  Token(string value, int lineNo, int charNo) noexcept;
+  Token(string value, unsigned lineNo, unsigned charNo) noexcept;
 };
 
 class IllegalCharacter : public exception {
  public:
-  IllegalCharacter(char character, int line, int column) noexcept;
+  IllegalCharacter(char character, unsigned line, unsigned column) noexcept;
   const char* what() const noexcept override;
 
  private:

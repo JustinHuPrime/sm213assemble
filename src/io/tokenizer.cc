@@ -24,16 +24,17 @@ namespace {
 using std::find;
 using std::to_string;
 
-const char* SPECIAL_SYMBOLS = "()$,:.";
+const char* SPECIAL_SYMBOLS = "()$,:.*";
+const char* PSEUDO_ALPHA = "_";
 }  // namespace
 
-Token::Token(string v, int l, int c) noexcept
+Token::Token(string v, unsigned l, unsigned c) noexcept
     : value{v}, lineNo{l}, charNo{c} {}
 
-IllegalCharacter::IllegalCharacter(char character, int line,
-                                   int column) noexcept
-    : msg{to_string(line) + ":" + to_string(column) + ": Illegal character `" +
-          to_string(character) + "`."} {}
+IllegalCharacter::IllegalCharacter(char character, unsigned line,
+                                   unsigned column) noexcept
+    : msg{to_string(line) + ":" + to_string(column) +
+          ": Illegal character: " + string(1, character)} {}
 const char* IllegalCharacter::what() const noexcept { return msg.c_str(); }
 
 vector<Token> tokenize(ifstream& fin) {
@@ -41,7 +42,7 @@ vector<Token> tokenize(ifstream& fin) {
   Token tokenBuffer("", 1, 1);
   char readBuffer;
 
-  int currLine = 1, currChar = 1;
+  unsigned currLine = 1, currChar = 1;
   bool inComment = false;
 
   while (fin.get(readBuffer)) {
@@ -67,20 +68,25 @@ vector<Token> tokenize(ifstream& fin) {
       tokenBuffer =
           Token("", currLine, currChar);  // token doesn't start at previous
                                           // place, it starts here now.
-    } else if (find(SPECIAL_SYMBOLS, SPECIAL_SYMBOLS + 6, readBuffer) !=
-               SPECIAL_SYMBOLS + 6) {  // is a special symbol
+    } else if (find(SPECIAL_SYMBOLS, SPECIAL_SYMBOLS + 7, readBuffer) !=
+               SPECIAL_SYMBOLS + 7) {  // is a special symbol
       if (!tokenBuffer.value.empty())
         rsf.push_back(tokenBuffer);  // save token if not empty
-      rsf.push_back(Token(string(readBuffer, 1), currLine,
+      rsf.push_back(Token(string(1, readBuffer), currLine,
                           currChar));  // save single char as token
       currChar++;
       tokenBuffer = Token("", currLine, currChar);
-    } else if (isalnum(readBuffer)) {   // plain character
+    } else if (isalnum(readBuffer) ||
+               find(PSEUDO_ALPHA, PSEUDO_ALPHA + 1, readBuffer) !=
+                   PSEUDO_ALPHA + 1) {  // plain character
       tokenBuffer.value += readBuffer;  // save and move on
       currChar++;
+    } else if (readBuffer == '\r') {  // ignore carriage returns
     } else {
       throw IllegalCharacter(readBuffer, currLine, currChar);
     }
   }
+
+  return rsf;
 }
 }  // namespace sm213assembler::io
