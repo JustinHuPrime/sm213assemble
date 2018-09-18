@@ -20,6 +20,7 @@
 // name with changed extension.
 
 #include "io/tokenizer.h"
+#include "io/writer.h"
 #include "model/ast.h"
 
 #include <fstream>
@@ -27,11 +28,13 @@
 #include <vector>
 
 namespace {
+using sm213assembler::io::FileOpenError;
 using sm213assembler::io::IllegalCharacter;
 using sm213assembler::io::Token;
 using sm213assembler::io::tokenize;
-using sm213assembler::model::AssemblyStatement;
-using sm213assembler::model::makeAst;
+using sm213assembler::io::writeBinary;
+using sm213assembler::model::generateBinary;
+using sm213assembler::model::ParseError;
 using std::cerr;
 using std::ifstream;
 using std::ofstream;
@@ -66,24 +69,20 @@ int main(int argc, char* argv[]) {
     cerr << e.what() << '\n';
     return EXIT_FAILURE;
   }
-  vector<AssemblyStatement> ast;
+  vector<uint8_t> binary;
   try {
-    ast = makeAst(tokens);
-  } catch (...) {
-    // TODO: write exception handling code.
+    binary = generateBinary(tokens);
+  } catch (const ParseError& e) {
+    cerr << e.what() << '\n';
     return EXIT_FAILURE;
   }
 
-  ofstream fout;
-  fout.open(destinationFileName,
-            std::ios_base::binary | std::ios_base::trunc | std::ios_base::out);
-
-  if (!fout.is_open()) {
+  try {
+    writeBinary(binary, destinationFileName);
+  } catch (const FileOpenError&) {
     cerr << "Could not open output file. Aborting.\n";
     return EXIT_FAILURE;
   }
-
-  generateBinary(ast, fout);
 
   return EXIT_SUCCESS;
 }
