@@ -24,7 +24,7 @@ namespace {
 using std::find;
 using std::to_string;
 
-const char* SPECIAL_SYMBOLS = "()$,:.*";
+const char* SPECIAL_SYMBOLS = "()$,*";
 const char* PSEUDO_ALPHA = "_";
 }  // namespace
 
