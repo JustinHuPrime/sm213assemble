@@ -18,18 +18,31 @@
 #include "model/ast.h"
 
 #include <algorithm>
+#include <limits>
+#include <map>
+#include <tuple>
 
 namespace sm213assembler::model {
 namespace {
-using namespace ast;  // bad style, but I really want to import all of ast.
 using std::all_of;
 using std::find;
+using std::get;
+using std::map;
+using std::max;
+using std::numeric_limits;
+using std::stoul;
 using std::to_string;
+using std::tuple;
 
-bool validLabel(string s) {
-  return all_of(s.begin(), s.end() - 1,
+struct Block {
+  uint32_t startPos;
+  vector<uint8_t> bytes;
+};
+
+bool validLabel(string s, bool expectColon = false) {
+  return all_of(s.begin(), s.end() - (expectColon ? 1 : 0),
                 [](char c) { return isalnum(c) || c == '_'; }) &&
-         !isdigit(s.front()) && s.back() == ':';
+         !isdigit(s.front()) && (!expectColon || s.back() == ':');
 }
 }  // namespace
 
@@ -37,15 +50,14 @@ ParseError::ParseError(unsigned l, unsigned c, string m) noexcept
     : msg{to_string(l) + ":" + to_string(c) + ":" + m} {}
 const char* ParseError::what() const noexcept { return msg.c_str(); }
 
-vector<AssemblyStatement> makeAst(const vector<Token>& tokens) {
-  vector<AssemblyStatement> rsf;
+vector<uint8_t> generateBinary(const vector<Token>& tokens) {
+  vector<Block> blocks;
+  map<string, uint32_t> labelBinds;
+  map<uint32_t, tuple<string, unsigned, unsigned>> labelUses;
 
-  string labelAcc;
+  uint32_t currPos = 0;
+
   for (auto iter = tokens.cbegin(); iter != tokens.cend(); ++iter) {
-    // iter is one of: special symbol, string, hex constant
-    // at this point, just started reading, have read a label, or have
-    // already read a statement.
-
     if (iter->value == "ld") {           // ld something
     } else if (iter->value == "st") {    // st something
     } else if (iter->value == "halt") {  // halt terminal
@@ -62,21 +74,32 @@ vector<AssemblyStatement> makeAst(const vector<Token>& tokens) {
     } else if (iter->value == "shr") {   // shr sh* form
     } else if (iter->value == ".pos") {  //.pos form
     } else if (iter->value == ".long" ||
-               iter->value == ".data") {   // literal data
-    } else if (validLabel(iter->value)) {  // label
-      labelAcc = iter->value.substr(
-          0, iter->value.length() - 1);  // set the label (remove colon)
-      ++iter;  // parse the thing attached to this label
-      continue;
+               iter->value == ".data") {         // literal data
+    } else if (validLabel(iter->value, true)) {  // label
     } else {
       throw ParseError(iter->lineNo, iter->charNo,
                        "unrecognized token '" + iter->value + "'.");
     }
-
-    labelAcc = "";  // parsed one whole thing - can't be any more label
   }
-}
-void generateBinary(vector<AssemblyStatement>&, ofstream& fout) noexcept {
-  return;
+
+  vector<uint8_t> result;
+
+  for (Block b : blocks) {  // generate code with placeholders
+    result.resize(max(result.size(), static_cast<size_t>(b.startPos)));
+  }
+
+  for (auto iter : labelUses) {  // fill in placeholders
+    auto found = labelBinds.find(get<0>(iter.second));
+    if (found == labelBinds.end()) {
+      throw ParseError(get<1>(iter.second), get<2>(iter.second),
+                       "unbound label '" + get<0>(iter.second) + "'.");
+    }
+    result[iter.first + 0] = static_cast<uint8_t>((found->second) >> (3 * 8));
+    result[iter.first + 1] = static_cast<uint8_t>((found->second) >> (2 * 8));
+    result[iter.first + 2] = static_cast<uint8_t>((found->second) >> (1 * 8));
+    result[iter.first + 3] = static_cast<uint8_t>((found->second) >> (0 * 8));
+  }
+
+  return result;
 }
 }  // namespace sm213assembler::model

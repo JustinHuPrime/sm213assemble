@@ -36,12 +36,12 @@ using std::vector;
 //                     | <LabelStatemet> <OpcodeStatement>
 // DotStatement ::= .pos <HexLiteral>
 //                | .(long|data) <HexLiteral>
-// HexLiteral ::= 0x[0-9]+
+// HexLiteral ::= any hex literal
 // Label ::= [a-zA-Z_][a-zA-Z_0-9]*
 // LabelStatement ::= <Label> :
 // Register ::= r[0-7]
 // OpCodeStatement ::= ld $<Label> , <Register> // ld immediate using label
-//                   | ld $<HexLiteral (int)> , <Register> // ld literal
+//                   | ld $<HexLiteral (uint)> , <Register> // ld literal
 //                   | ld ( <Register> ) , <Register> // ld offset sugared
 //                   | ld <HexLiteral / by 4, [0x0, 0x3c]> ( <Register> ) ,
 //                   <Register> // ld offset
@@ -68,91 +68,87 @@ using std::vector;
 //                   | beq <Register> , <HexLiteral, / by 2, 2's c [0x80, 0x7f]>
 //                   | bgt <Register> , <HexLiteral, / by 2, 2's c [0x80, 0x7f]>
 
-struct AssemblyStatement {
-  unsigned sourceLineNo;
-  unsigned sourceCharNo;
-  string label;
-};
+// Unused code - delete if not needed before commit.
 
-namespace ast {
-namespace {
-using AS = AssemblyStatement;
-}
+// namespace ast {
+// namespace {
+// using AS = AssemblyStatement;
+// }
 
-struct Position : AS {
-  uint32_t newPos;
-};
-struct Literal : AS {
-  uint32_t literal;
-};
-struct LoadLiteral : AS {
-  uint32_t literal;
-};
-struct LoadLabel : AS {
-  string targetLabel;
-};
-struct LoadOffset : AS {
-  uint8_t destination;
-  uint8_t base;
-  uint8_t offset;
-};
-struct LoadIndexed : AS {
-  uint8_t destination;
-  uint8_t source;
-  uint8_t offset;
-};
-struct StoreOffset : AS {
-  uint8_t source;
-  uint8_t base;
-  uint8_t offset;
-};
-struct StoreIndexed : AS {
-  uint8_t source;
-  uint8_t destination;
-  uint8_t offset;
-};
-struct Halt : AS {};  // intentionally empty
-struct Nop : AS {};   // intentionally empty
-struct BinaryOperator : AS {
-  uint8_t opNum;  // one of 0, 1, 2 for move, add, and
-  uint8_t operand;
-  uint8_t target;
-};
-struct UnaryOperator : AS {
-  uint8_t opNum;  // one of 3, 4, 5, 6, 7 for inc, inca, dec, deca, not
-  uint8_t target;
-};
-struct ShiftOperator : AS {
-  int8_t shiftAmount;
-  uint8_t target;
-};
-struct GetPC : AS {
-  uint8_t offset;
-  uint8_t destination;
-};
-struct Jump : AS {
-  uint32_t literal;
-};
-struct JumpIndirect : AS {
-  uint8_t base;
-  uint8_t offset;
-};
-struct JumpDInd : AS {
-  uint8_t base;
-  uint8_t offset;
-};
-struct JumpDIndIndexed : AS {
-  uint8_t source;
-  uint8_t offset;
-};
-struct Branch : AS {
-  int8_t literal;
-};
-struct BranchCond : AS {
-  uint8_t comparison;  // one of 0x9, 0xa for equal, greater than
-  int8_t literal;
-};
-}  // namespace ast
+// struct Position : AS {
+//   uint32_t newPos;
+// };
+// struct Literal : AS {
+//   uint32_t literal;
+// };
+// struct LoadLiteral : AS {
+//   uint32_t literal;
+// };
+// struct LoadLabel : AS {
+//   string targetLabel;
+// };
+// struct LoadOffset : AS {
+//   uint8_t destination;
+//   uint8_t base;
+//   uint8_t offset;
+// };
+// struct LoadIndexed : AS {
+//   uint8_t destination;
+//   uint8_t source;
+//   uint8_t offset;
+// };
+// struct StoreOffset : AS {
+//   uint8_t source;
+//   uint8_t base;
+//   uint8_t offset;
+// };
+// struct StoreIndexed : AS {
+//   uint8_t source;
+//   uint8_t destination;
+//   uint8_t offset;
+// };
+// struct Halt : AS {};  // intentionally empty
+// struct Nop : AS {};   // intentionally empty
+// struct BinaryOperator : AS {
+//   uint8_t opNum;  // one of 0, 1, 2 for move, add, and
+//   uint8_t operand;
+//   uint8_t target;
+// };
+// struct UnaryOperator : AS {
+//   uint8_t opNum;  // one of 3, 4, 5, 6, 7 for inc, inca, dec, deca, not
+//   uint8_t target;
+// };
+// struct ShiftOperator : AS {
+//   int8_t shiftAmount;
+//   uint8_t target;
+// };
+// struct GetPC : AS {
+//   uint8_t offset;
+//   uint8_t destination;
+// };
+// struct Jump : AS {
+//   uint32_t literal;
+// };
+// struct JumpIndirect : AS {
+//   uint8_t base;
+//   uint8_t offset;
+// };
+// struct JumpDInd : AS {
+//   uint8_t base;
+//   uint8_t offset;
+// };
+// struct JumpDIndIndexed : AS {
+//   uint8_t source;
+//   uint8_t offset;
+// };
+// struct Branch : AS {
+//   int8_t literal;
+// };
+// struct BranchCond : AS {
+//   uint8_t comparison;  // one of 0x9, 0xa for equal, greater than
+//   int8_t literal;
+// };
+// }  // namespace ast
 
 class ParseError : public exception {
  public:
@@ -163,8 +159,7 @@ class ParseError : public exception {
   string msg;
 };
 
-vector<AssemblyStatement> makeAst(const vector<Token>&);
-void generateBinary(vector<AssemblyStatement>&, ofstream&) noexcept;
+vector<uint8_t> generateBinary(const vector<Token>&);
 }  // namespace sm213assembler::model
 
 #endif  // SM213ASSEMBLER_MODEL_AST_H_
