@@ -27,6 +27,7 @@ namespace sm213assembler::model {
 namespace {
 using sm213assembler::io::Token;
 using std::ofstream;
+using std::string;
 using std::vector;
 }  // namespace
 
@@ -40,7 +41,7 @@ using std::vector;
 // Register ::= r[0-7]
 // OpCodeStatement ::= ld $<Label> , <Register> // ld immediate using label
 //                   | ld $<HexLiteral (int)> , <Register> // ld literal
-//                   | ld ( <Register> ) , <Register> // ld indexed sugared
+//                   | ld ( <Register> ) , <Register> // ld offset sugared
 //                   | ld <HexLiteral / by 4, [0x0, 0x3c]> ( <Register> ) ,
 //                   <Register> // ld offset
 //                                                                    no sugar
@@ -55,7 +56,7 @@ using std::vector;
 //                   | nop
 //                   | <BinaryOperator> <Register> , <Register>
 //                   | <UnaryOperator> <Register>
-//                   | shl $ <HexLiteral 2's c [0x80, 0x7f]> , <Register>
+//                   | sh[lr] $ <HexLiteral [0, 0x7f]> , <Register>
 //                   | gpc $ <HexLiteral> / by 2, [0, 0x1e], <Register>
 //                   | j <HexLiteral, uint>
 //                   | j ( <Register> )
@@ -67,13 +68,90 @@ using std::vector;
 //                   | bgt <Register> , <HexLiteral, / by 2, 2's c [0x80, 0x7f]>
 
 struct AssemblyStatement {
-  uint sourceLineNo;
-  uint sourceCharNo;
+  unsigned sourceLineNo;
+  unsigned sourceCharNo;
+  string label;
 };
 
-struct PositionStatement : AssemblyStatement {
+namespace ast {
+namespace {
+using AS = AssemblyStatement;
+}
+
+struct Position : AS {
   uint32_t newPos;
 };
+struct Literal : AS {
+  uint32_t literal;
+};
+struct LoadLiteral : AS {
+  uint32_t literal;
+};
+struct LoadLabel : AS {
+  string targetLabel;
+};
+struct LoadOffset : AS {
+  uint8_t destination;
+  uint8_t base;
+  uint8_t offset;
+};
+struct LoadIndexed : AS {
+  uint8_t destination;
+  uint8_t source;
+  uint8_t offset;
+};
+struct StoreOffset : AS {
+  uint8_t source;
+  uint8_t base;
+  uint8_t offset;
+};
+struct StoreIndexed : AS {
+  uint8_t source;
+  uint8_t destination;
+  uint8_t offset;
+};
+struct Halt : AS {};  // intentionally empty
+struct Nop : AS {};   // intentionally empty
+struct BinaryOperator : AS {
+  uint8_t opNum;  // one of 0, 1, 2 for move, add, and
+  uint8_t operand;
+  uint8_t target;
+};
+struct UnaryOperator : AS {
+  uint8_t opNum;  // one of 3, 4, 5, 6, 7 for inc, inca, dec, deca, not
+  uint8_t target;
+};
+struct ShiftOperator : AS {
+  int8_t shiftAmount;
+  uint8_t target;
+};
+struct GetPC : AS {
+  uint8_t offset;
+  uint8_t destination;
+};
+struct Jump : AS {
+  uint32_t literal;
+};
+struct JumpIndirect : AS {
+  uint8_t base;
+  uint8_t offset;
+};
+struct JumpDInd : AS {
+  uint8_t base;
+  uint8_t offset;
+};
+struct JumpDIndIndexed : AS {
+  uint8_t source;
+  uint8_t offset;
+};
+struct Branch : AS {
+  int8_t literal;
+};
+struct BranchCond : AS {
+  uint8_t comparison;  // one of 0x9, 0xa for equal, greater than
+  int8_t literal;
+};
+}  // namespace ast
 
 vector<AssemblyStatement> makeAst(vector<Token>&);
 void generateBinary(vector<AssemblyStatement>&, ofstream&) noexcept;
