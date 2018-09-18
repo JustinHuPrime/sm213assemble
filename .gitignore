@@ -1,7 +1,7 @@
-sm213interp
-sm213interpTest
+sm213assemble
 bin/
 dependencies/
 tests/bin/
 tests/dependencies/
 *.img
+*.s

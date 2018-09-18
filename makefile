@@ -47,7 +47,7 @@ LIBS := $(shell pkg-config --libs ncurses)
 INCLUDES := -I$(SRCDIR)
 
 #final executable name
-EXENAME := sm213interp
+EXENAME := sm213assemble
 
 
 .PHONY: debug release clean diagnose

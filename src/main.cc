@@ -19,15 +19,24 @@
 // assembles target file into a .img file. Resulting file name is source file
 // name with changed extension.
 
+#include "io/tokenizer.h"
+#include "model/ast.h"
+
 #include <fstream>
 #include <iostream>
-#include <stdexcept>
+#include <vector>
 
 namespace {
+using sm213assembler::io::Token;
+using sm213assembler::io::tokenize;
+using sm213assembler::model::AssemblyStatement;
+using sm213assembler::model::makeAst;
 using std::cerr;
+using std::cout;  // testing only
 using std::ifstream;
 using std::ofstream;
 using std::string;
+using std::vector;
 }  // namespace
 
 int main(int argc, char* argv[]) {
@@ -37,7 +46,35 @@ int main(int argc, char* argv[]) {
   }
 
   string sourceFileName(argv[1]);
-  string destinationFileName;
+  string destinationFileName = sourceFileName;
+  destinationFileName.replace(sourceFileName.find_last_of('.'),
+                              sourceFileName.length(), ".img");
+
+  ifstream fin;
+  fin.open(sourceFileName);
+
+  if (!fin.is_open()) {
+    cerr << sourceFileName << '\n';
+    cerr << "Could not open source file. Aborting.\n";
+    return EXIT_FAILURE;
+  }
+
+  vector<Token> tokens = tokenize(fin);
+  for (Token t : tokens) {
+    cout << t.lineNo << ':' << t.charNo << ':' << t.value << '\n';
+  }
+  vector<AssemblyStatement> ast = makeAst(tokens);
+
+  ofstream fout;
+  fout.open(destinationFileName,
+            std::ios_base::binary | std::ios_base::trunc | std::ios_base::out);
+
+  if (!fout.is_open()) {
+    cerr << "Could not open output file. Aborting.\n";
+    return EXIT_FAILURE;
+  }
+
+  generateBinary(ast, fout);
 
   return EXIT_SUCCESS;
 }
