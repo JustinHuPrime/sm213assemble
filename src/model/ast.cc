@@ -44,6 +44,40 @@ bool validLabel(string s, bool expectColon = false) {
                 [](char c) { return isalnum(c) || c == '_'; }) &&
          !isdigit(s.front()) && (!expectColon || s.back() == ':');
 }
+
+vector<uint8_t> bytesFromBlocks(vector<Block> blocks) noexcept {
+  vector<uint8_t> result;
+  uint32_t currPos;
+  for (Block b : blocks) {  // generate code, keep placeholders
+    result.resize(max(result.size(), static_cast<size_t>(b.startPos)));
+    currPos = b.startPos;
+    for (uint8_t byte : b.bytes) {
+      if (currPos == result.size())
+        result.push_back(byte);
+      else
+        result[currPos] = byte;
+      currPos++;
+    }
+  }
+
+  return result;
+}
+
+void replacePlaceholders(
+    vector<uint8_t>& result, const map<string, uint32_t>& labelBinds,
+    const map<uint32_t, tuple<string, unsigned, unsigned>>& labelUses) {
+  for (auto iter : labelUses) {
+    auto found = labelBinds.find(get<0>(iter.second));
+    if (found == labelBinds.end()) {
+      throw ParseError(get<1>(iter.second), get<2>(iter.second),
+                       "unbound label '" + get<0>(iter.second) + "'.");
+    }
+    result[iter.first + 0] = static_cast<uint8_t>((found->second) >> (3 * 8));
+    result[iter.first + 1] = static_cast<uint8_t>((found->second) >> (2 * 8));
+    result[iter.first + 2] = static_cast<uint8_t>((found->second) >> (1 * 8));
+    result[iter.first + 3] = static_cast<uint8_t>((found->second) >> (0 * 8));
+  }
+}
 }  // namespace
 
 ParseError::ParseError(unsigned l, unsigned c, string m) noexcept
@@ -82,24 +116,11 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
     }
   }
 
-  vector<uint8_t> result;
-
-  for (Block b : blocks) {  // generate code with placeholders
-    result.resize(max(result.size(), static_cast<size_t>(b.startPos)));
-  }
-
-  for (auto iter : labelUses) {  // fill in placeholders
-    auto found = labelBinds.find(get<0>(iter.second));
-    if (found == labelBinds.end()) {
-      throw ParseError(get<1>(iter.second), get<2>(iter.second),
-                       "unbound label '" + get<0>(iter.second) + "'.");
-    }
-    result[iter.first + 0] = static_cast<uint8_t>((found->second) >> (3 * 8));
-    result[iter.first + 1] = static_cast<uint8_t>((found->second) >> (2 * 8));
-    result[iter.first + 2] = static_cast<uint8_t>((found->second) >> (1 * 8));
-    result[iter.first + 3] = static_cast<uint8_t>((found->second) >> (0 * 8));
-  }
+  vector<uint8_t> result = bytesFromBlocks(blocks);
+  replacePlaceholders(result, labelBinds, labelUses);  // namespace
 
   return result;
+}
+}  // namespace sm213assembler::model
 }
 }  // namespace sm213assembler::model
