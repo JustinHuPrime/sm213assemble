@@ -21,7 +21,7 @@
 
 #include "io/tokenizer.h"
 #include "io/writer.h"
-#include "model/ast.h"
+#include "model/generator.h"
 
 #include <fstream>
 #include <iostream>

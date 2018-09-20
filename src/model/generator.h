@@ -15,8 +15,8 @@
 // You should have received a copy of the GNU General Public License along with
 // the SM213 assembler.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SM213ASSEMBLER_MODEL_AST_H_
-#define SM213ASSEMBLER_MODEL_AST_H_
+#ifndef SM213ASSEMBLER_MODEL_GENERATOR_H_
+#define SM213ASSEMBLER_MODEL_GENERATOR_H_
 
 #include "io/tokenizer.h"
 
@@ -162,4 +162,4 @@ class ParseError : public exception {
 vector<uint8_t> generateBinary(const vector<Token>&);
 }  // namespace sm213assembler::model
 
-#endif  // SM213ASSEMBLER_MODEL_AST_H_
+#endif  // SM213ASSEMBLER_MODEL_GENERATOR_H_

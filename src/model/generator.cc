@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License along with
 // the SM213 assembler.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "model/ast.h"
+#include "model/generator.h"
 
 #include <algorithm>
 #include <iostream>
