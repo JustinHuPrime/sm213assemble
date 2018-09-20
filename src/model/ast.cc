@@ -68,14 +68,17 @@ vector<uint8_t> bytesFromBlocks(vector<Block> blocks) noexcept {
         pair<uint32_t, uint32_t>(b.startPos, b.startPos + b.bytes.size()));
   }
 
+  size_t maxNeeded = 0;
+  for (const Block& b : blocks) {
+    maxNeeded = max(maxNeeded, b.startPos + b.bytes.size());
+  }
+
+  result.resize(maxNeeded);
+
   for (const Block& b : blocks) {  // generate code, keep placeholders
-    result.resize(max(result.size(), static_cast<size_t>(b.startPos)));
     uint32_t currPos = b.startPos;
     for (uint8_t byte : b.bytes) {
-      if (currPos == result.size())
-        result.push_back(byte);
-      else
-        result[currPos] = byte;
+      result[currPos] = byte;
       currPos++;
     }
   }
