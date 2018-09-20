@@ -53,11 +53,10 @@ bool validLabel(string s, bool expectColon = false) {
 
 vector<uint8_t> bytesFromBlocks(vector<Block> blocks) noexcept {
   vector<uint8_t> result;
-  uint32_t currPos;
 
   vector<pair<uint32_t, uint32_t>> areas;
-  for (Block b : blocks) {  // check for collisions
-    for (auto p : areas) {
+  for (const Block& b : blocks) {  // check for collisions
+    for (const auto& p : areas) {
       if ((p.first <= b.startPos && b.startPos < p.second) ||
           (p.first < b.startPos + b.bytes.size() &&
            b.startPos + b.bytes.size() <= p.second) ||
@@ -69,9 +68,9 @@ vector<uint8_t> bytesFromBlocks(vector<Block> blocks) noexcept {
         pair<uint32_t, uint32_t>(b.startPos, b.startPos + b.bytes.size()));
   }
 
-  for (Block b : blocks) {  // generate code, keep placeholders
+  for (const Block& b : blocks) {  // generate code, keep placeholders
     result.resize(max(result.size(), static_cast<size_t>(b.startPos)));
-    currPos = b.startPos;
+    uint32_t currPos = b.startPos;
     for (uint8_t byte : b.bytes) {
       if (currPos == result.size())
         result.push_back(byte);
@@ -85,7 +84,8 @@ vector<uint8_t> bytesFromBlocks(vector<Block> blocks) noexcept {
 }
 void replacePlaceholders(
     vector<uint8_t>& result, const map<string, uint32_t>& labelBinds,
-    const map<uint32_t, tuple<string, unsigned, unsigned>>& labelUses) {
+    const vector<pair<uint32_t, tuple<string, unsigned, unsigned>>>&
+        labelUses) {
   for (auto iter : labelUses) {
     auto found = labelBinds.find(get<0>(iter.second));
     if (found == labelBinds.end()) {
@@ -100,8 +100,11 @@ void replacePlaceholders(
 }
 
 [[noreturn]] void badToken(const const_iter& iter) {
-  throw ParseError(iter->lineNo, iter->charNo,
-                   "unrecognized token '" + iter->value + "'.");
+  if (iter->value != "\n")
+    throw ParseError(iter->lineNo, iter->charNo,
+                     "unrecognized token '" + iter->value + "'.");
+  else
+    throw ParseError(iter->lineNo, iter->charNo, "unexpected newline.");
 }
 
 void requireNext(const const_iter& iter,
@@ -181,32 +184,37 @@ const char* ParseError::what() const noexcept { return msg.c_str(); }
 vector<uint8_t> generateBinary(const vector<Token>& tokens) {
   vector<Block> blocks;
   map<string, uint32_t> labelBinds;
-  map<uint32_t, tuple<string, unsigned, unsigned>> labelUses;
+  vector<pair<uint32_t, tuple<string, unsigned, unsigned>>> labelUses;
 
   uint32_t currPos = 0;
   Block currBlock;
+  currBlock.startPos = 0;
 
   for (auto iter = tokens.cbegin(); iter != tokens.cend(); ++iter) {
     if (iter->value == "ld") {  // ld something
       requireNext(iter, tokens.cend());
       ++iter;
       if (iter->value == "$") {  // label or literal
-        currBlock.bytes.push_back(0x0d);
-        currBlock.bytes.push_back(0x0);
-        currPos += 2;
+        uint32_t address;
         requireNext(iter, tokens.cend());
+        currPos += 2;
         ++iter;
         if (validLabel(iter->value)) {
-          currBlock.bytes.push_back(0x5a);
-          currBlock.bytes.push_back(0x5a);
-          currBlock.bytes.push_back(0x5a);
-          currBlock.bytes.push_back(0x5a);
-          labelUses.insert(pair<uint32_t, tuple<string, unsigned, unsigned>>(
+          address = 0x5a5a5a5a;  // magic number - 0x5--- is an invalid opcode
+          labelUses.push_back(pair<uint32_t, tuple<string, unsigned, unsigned>>(
               currPos, tuple<string, unsigned, unsigned>(
                            iter->value, iter->lineNo, iter->charNo)));
         } else {
-          addInt(getInt(iter), currBlock);
+          address = getInt(iter);
         }
+        requireNext(iter, tokens.cend());
+        ++iter;
+        expect(iter, ",");
+        requireNext(iter, tokens.cend());
+        ++iter;
+        currBlock.bytes.push_back(getOneReg(iter));
+        currBlock.bytes.push_back(0x0);
+        addInt(address, currBlock);
         currPos += 4;
       } else if (iter->value == "(") {  // (rn) or (rb, ri, 4) forms
         requireNext(iter, tokens.cend());
@@ -596,7 +604,9 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
       blocks.push_back(currBlock);
       requireNext(iter, tokens.cend());
       ++iter;
+      currBlock = Block();
       currBlock.startPos = getInt(iter);
+      currPos = currBlock.startPos;
     } else if (iter->value == ".long" ||
                iter->value == ".data") {  // literal data
       requireNext(iter, tokens.cend());
@@ -621,6 +631,8 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
       }
     }
   }
+
+  blocks.push_back(currBlock);
 
   vector<uint8_t> result = bytesFromBlocks(blocks);  // final processing steps
   replacePlaceholders(result, labelBinds, labelUses);
