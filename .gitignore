@@ -1,7 +1,5 @@
 sm213assemble
 bin/
 dependencies/
-tests/bin/
-tests/dependencies/
 *.img
 *.s
