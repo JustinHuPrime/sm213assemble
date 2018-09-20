@@ -89,7 +89,7 @@ void replacePlaceholders(
     vector<uint8_t>& result, const map<string, uint32_t>& labelBinds,
     const vector<pair<uint32_t, tuple<string, unsigned, unsigned>>>&
         labelUses) {
-  for (auto iter : labelUses) {
+  for (const auto& iter : labelUses) {
     auto found = labelBinds.find(get<0>(iter.second));
     if (found == labelBinds.end()) {
       throw ParseError(get<1>(iter.second), get<2>(iter.second),
