@@ -24,7 +24,7 @@ namespace {
 using std::find;
 using std::to_string;
 
-const char* SPECIAL_SYMBOLS = "()$,*";
+const char* SPECIAL_SYMBOLS = "()$,*\n";
 const char* PSEUDO_ALPHA = "_";
 }  // namespace
 
@@ -60,14 +60,6 @@ vector<Token> tokenize(ifstream& fin) {
     } else if (readBuffer == '#') {  // start of comment
       inComment = true;              // turn start of comment to true
       currChar++;
-    } else if (isblank(readBuffer)) {  // any whitespace except newline
-      if (!tokenBuffer.value
-               .empty())  // if isn't empty, record it and reset buffer
-        rsf.push_back(tokenBuffer);
-      currChar++;
-      tokenBuffer =
-          Token("", currLine, currChar);  // token doesn't start at previous
-                                          // place, it starts here now.
     } else if (find(SPECIAL_SYMBOLS, SPECIAL_SYMBOLS + 7, readBuffer) !=
                SPECIAL_SYMBOLS + 7) {  // is a special symbol
       if (!tokenBuffer.value.empty())
@@ -76,6 +68,14 @@ vector<Token> tokenize(ifstream& fin) {
                           currChar));  // save single char as token
       currChar++;
       tokenBuffer = Token("", currLine, currChar);
+    } else if (isblank(readBuffer)) {  // any whitespace except newline
+      if (!tokenBuffer.value
+               .empty())  // if isn't empty, record it and reset buffer
+        rsf.push_back(tokenBuffer);
+      currChar++;
+      tokenBuffer =
+          Token("", currLine, currChar);  // token doesn't start at previous
+                                          // place, it starts here now.
     } else if (isalnum(readBuffer) ||
                find(PSEUDO_ALPHA, PSEUDO_ALPHA + 1, readBuffer) !=
                    PSEUDO_ALPHA + 1) {  // plain character
