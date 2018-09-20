@@ -60,7 +60,7 @@ vector<uint8_t> bytesFromBlocks(vector<Block> blocks) noexcept {
       if ((p.first <= b.startPos && b.startPos < p.second) ||
           (p.first < b.startPos + b.bytes.size() &&
            b.startPos + b.bytes.size() <= p.second) ||
-          (p.first <= b.startPos && b.startPos + b.bytes.size() <= p.second))
+          (p.first > b.startPos && b.startPos + b.bytes.size() >= p.second))
         cerr << "Warning: overwriting some bytes in block from " << std::hex
              << p.first << " to " << p.second << ".\n";
     }
@@ -622,6 +622,8 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
       labelBinds.insert(pair<string, uint32_t>(
           iter->value.substr(0, iter->value.length() - 1), currPos));
       continue;  // labels don't have to have a newline after them.
+    } else if (iter->value == "\n") {
+      continue;  // ignore extraneous newlines.
     } else {
       badToken(iter);
     }
