@@ -285,7 +285,7 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
         ++iter;
         uint8_t to = getOneReg(iter);
         // 1psd
-        currBlock.bytes.push_back(0x30 | static_cast<uint8_t>(buffer / 4));
+        currBlock.bytes.push_back(0x10 | static_cast<uint8_t>(buffer / 4));
         currBlock.bytes.push_back((from << 4) | to);
         currPos += 2;
       }
