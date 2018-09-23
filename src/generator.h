@@ -18,7 +18,7 @@
 #ifndef SM213ASSEMBLER_MODEL_GENERATOR_H_
 #define SM213ASSEMBLER_MODEL_GENERATOR_H_
 
-#include "io/tokenizer.h"
+#include "io.h"
 
 #include <fstream>
 #include <vector>
@@ -31,6 +31,17 @@ using std::ofstream;
 using std::string;
 using std::vector;
 }  // namespace
+
+class ParseError : public exception {
+ public:
+  ParseError(unsigned lineNo, unsigned charNo, string msg) noexcept;
+  const char* what() const noexcept override;
+
+ private:
+  string msg;
+};
+
+vector<uint8_t> generateBinary(const vector<Token>&);
 
 // AssemblyStatement ::= <LabelStatemet> <DotStatement>
 //                     | <LabelStatemet> <OpcodeStatement>
@@ -67,99 +78,6 @@ using std::vector;
 //                   | br <HexLiteral, / by 2, 2's c [0x80, 0x7f]>
 //                   | beq <Register> , <HexLiteral, / by 2, 2's c [0x80, 0x7f]>
 //                   | bgt <Register> , <HexLiteral, / by 2, 2's c [0x80, 0x7f]>
-
-// Unused code - delete if not needed before commit.
-
-// namespace ast {
-// namespace {
-// using AS = AssemblyStatement;
-// }
-
-// struct Position : AS {
-//   uint32_t newPos;
-// };
-// struct Literal : AS {
-//   uint32_t literal;
-// };
-// struct LoadLiteral : AS {
-//   uint32_t literal;
-// };
-// struct LoadLabel : AS {
-//   string targetLabel;
-// };
-// struct LoadOffset : AS {
-//   uint8_t destination;
-//   uint8_t base;
-//   uint8_t offset;
-// };
-// struct LoadIndexed : AS {
-//   uint8_t destination;
-//   uint8_t source;
-//   uint8_t offset;
-// };
-// struct StoreOffset : AS {
-//   uint8_t source;
-//   uint8_t base;
-//   uint8_t offset;
-// };
-// struct StoreIndexed : AS {
-//   uint8_t source;
-//   uint8_t destination;
-//   uint8_t offset;
-// };
-// struct Halt : AS {};  // intentionally empty
-// struct Nop : AS {};   // intentionally empty
-// struct BinaryOperator : AS {
-//   uint8_t opNum;  // one of 0, 1, 2 for move, add, and
-//   uint8_t operand;
-//   uint8_t target;
-// };
-// struct UnaryOperator : AS {
-//   uint8_t opNum;  // one of 3, 4, 5, 6, 7 for inc, inca, dec, deca, not
-//   uint8_t target;
-// };
-// struct ShiftOperator : AS {
-//   int8_t shiftAmount;
-//   uint8_t target;
-// };
-// struct GetPC : AS {
-//   uint8_t offset;
-//   uint8_t destination;
-// };
-// struct Jump : AS {
-//   uint32_t literal;
-// };
-// struct JumpIndirect : AS {
-//   uint8_t base;
-//   uint8_t offset;
-// };
-// struct JumpDInd : AS {
-//   uint8_t base;
-//   uint8_t offset;
-// };
-// struct JumpDIndIndexed : AS {
-//   uint8_t source;
-//   uint8_t offset;
-// };
-// struct Branch : AS {
-//   int8_t literal;
-// };
-// struct BranchCond : AS {
-//   uint8_t comparison;  // one of 0x9, 0xa for equal, greater than
-//   int8_t literal;
-// };
-// }  // namespace ast
-
-class ParseError : public exception {
- public:
-  ParseError(unsigned lineNo, unsigned charNo, string msg) noexcept;
-  const char* what() const noexcept override;
-
- private:
-  string msg;
-};
-
-vector<uint8_t> generateBinary(const vector<Token>&);
 }  // namespace sm213assembler::model
 
 #endif  // SM213ASSEMBLER_MODEL_GENERATOR_H_

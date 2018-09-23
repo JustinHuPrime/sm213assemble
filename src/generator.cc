@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License along with
 // the SM213 assembler.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "model/generator.h"
+#include "generator.h"
 
 #include <algorithm>
 #include <iostream>
@@ -307,7 +307,7 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
         if (iter->value == ")") {  // (rn) form
           uint8_t to = temp;
           currBlock.bytes.push_back(0x30 | from);
-          currBlock.bytes.push_back(temp);
+          currBlock.bytes.push_back(to);
         } else {  // (rd, ri, 4) form
           // 4sdi
           uint8_t base = temp;

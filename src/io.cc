@@ -15,7 +15,7 @@
 // You should have received a copy of the GNU General Public License along with
 // the SM213 assembler.  If not, see <https://www.gnu.org/licenses/>.
 
-#include "io/tokenizer.h"
+#include "io.h"
 
 #include <algorithm>
 
@@ -30,6 +30,8 @@ const char* PSEUDO_ALPHA = "_.:";
 
 Token::Token(string v, unsigned l, unsigned c) noexcept
     : value{v}, lineNo{l}, charNo{c} {}
+
+const char* FileOpenError::what() const noexcept { return ""; }
 
 IllegalCharacter::IllegalCharacter(char character, unsigned line,
                                    unsigned column) noexcept
@@ -91,5 +93,19 @@ vector<Token> tokenize(ifstream& fin) {
   }
 
   return rsf;
+}
+
+void writeBinary(const vector<uint8_t>& binary, const string& fn) {
+  ofstream fout;
+  fout.open(fn,
+            std::ios_base::binary | std::ios_base::trunc | std::ios_base::out);
+
+  if (!fout.is_open()) throw FileOpenError();
+
+  for (uint8_t byte : binary) fout << byte;
+
+  fout.flush();
+  fout.close();
+  return;
 }
 }  // namespace sm213assembler::io

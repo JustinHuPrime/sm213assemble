@@ -19,9 +19,8 @@
 // assembles target file into a .img file. Resulting file name is source file
 // name with changed extension.
 
-#include "io/tokenizer.h"
-#include "io/writer.h"
-#include "model/generator.h"
+#include "generator.h"
+#include "io.h"
 
 #include <fstream>
 #include <iostream>
