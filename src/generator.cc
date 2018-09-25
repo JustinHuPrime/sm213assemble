@@ -166,8 +166,6 @@ uint8_t getOneReg(const_iter& iter) {
   return iter->value[1] - '0';
 }
 uint8_t getTwoRegs(const_iter& iter, const const_iter& end) {
-  requireNext(iter, end);
-  ++iter;
   uint8_t acc = getOneReg(iter);
   requireNext(iter, end);
   ++iter;
@@ -361,34 +359,50 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
       currPos += 2;
     } else if (iter->value == "mov") {  // mov binop
       currBlock.bytes.push_back(0x60);
+      requireNext(iter, tokens.cend());
+      ++iter;
       currBlock.bytes.push_back(getTwoRegs(iter, tokens.cend()));
       currPos += 2;
     } else if (iter->value == "add") {  // add binop
       currBlock.bytes.push_back(0x61);
+      requireNext(iter, tokens.cend());
+      ++iter;
       currBlock.bytes.push_back(getTwoRegs(iter, tokens.cend()));
       currPos += 2;
     } else if (iter->value == "and") {  // and binop
       currBlock.bytes.push_back(0x62);
+      requireNext(iter, tokens.cend());
+      ++iter;
       currBlock.bytes.push_back(getTwoRegs(iter, tokens.cend()));
       currPos += 2;
     } else if (iter->value == "inc") {  // inc unop
       currBlock.bytes.push_back(0x63);
+      requireNext(iter, tokens.cend());
+      ++iter;
       currBlock.bytes.push_back(getOneReg(iter));
       currPos += 2;
     } else if (iter->value == "inca") {  // unca unop
       currBlock.bytes.push_back(0x64);
+      requireNext(iter, tokens.cend());
+      ++iter;
       currBlock.bytes.push_back(getOneReg(iter));
       currPos += 2;
     } else if (iter->value == "dec") {  // dec unop
       currBlock.bytes.push_back(0x65);
+      requireNext(iter, tokens.cend());
+      ++iter;
       currBlock.bytes.push_back(getOneReg(iter));
       currPos += 2;
     } else if (iter->value == "deca") {  // deca unop
       currBlock.bytes.push_back(0x66);
+      requireNext(iter, tokens.cend());
+      ++iter;
       currBlock.bytes.push_back(getOneReg(iter));
       currPos += 2;
     } else if (iter->value == "not") {  // not unop
       currBlock.bytes.push_back(0x67);
+      requireNext(iter, tokens.cend());
+      ++iter;
       currBlock.bytes.push_back(getOneReg(iter));
       currPos += 2;
     } else if (iter->value == "shl") {  // shl sh* form
