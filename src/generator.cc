@@ -424,6 +424,7 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
       ++iter;
       currBlock.bytes.push_back(0x70 | getOneReg(iter));
       currBlock.bytes.push_back(static_cast<uint8_t>(buffer));
+      currPos += 2;
     } else if (iter->value == "shr") {  // shr sh* form
       requireNext(iter, tokens.cend());
       ++iter;
