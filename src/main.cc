@@ -49,8 +49,11 @@ int main(int argc, char* argv[]) {
 
   string sourceFileName(argv[1]);
   string destinationFileName = sourceFileName;
-  destinationFileName.replace(sourceFileName.find_last_of('.'),
-                              sourceFileName.length(), ".img");
+  if (destinationFileName.find_last_of('.') == string::npos)
+    destinationFileName += ".img";
+  else
+    destinationFileName.replace(destinationFileName.find_last_of('.'),
+                                destinationFileName.size(), ".img");
 
   ifstream fin;
   fin.open(sourceFileName);
