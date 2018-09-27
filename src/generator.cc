@@ -141,9 +141,20 @@ unsigned long getNumber(const const_iter& iter) {
   } else {
     badToken(iter);
   }
-
-  abort();  // something is terribly wrong - should annotate badToken as
-            // noreturn.
+}
+long getNumberSigned(const const_iter& iter) {
+  if (all_of(iter->value.cbegin(), iter->value.cend(),
+             isdigit)) {  // decimal number
+    return stol(iter->value);
+  } else if (iter->value.find("0x") == 0 &&
+             all_of(iter->value.cbegin() + 2, iter->value.cend(), [](char c) {
+               return isdigit(c) || ('a' <= c && c <= 'f') ||
+                      ('A' <= c && c <= 'F');
+             })) {  // hex number
+    return stol(iter->value.substr(2), nullptr, 16);
+  } else {
+    badToken(iter);
+  }
 }
 void addInt(uint32_t number, Block& b) {
   b.bytes.push_back(static_cast<uint8_t>(number >> (3 * 8)));
@@ -448,17 +459,18 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
     } else if (iter->value == "br") {  // br form
       requireNext(iter, tokens.cend());
       ++iter;
-      unsigned long buffer = getNumber(iter);
+      long buffer = getNumberSigned(iter);
       if (buffer % 2 != 0) {
         throw ParseError(iter->lineNo, iter->charNo,
                          iter->value + " must be divisible by two.");
-      } else if (buffer / 2 > 0xff) {
+      } else if (buffer / 2 > 0x7f || buffer / 2 < -0x80) {
         throw ParseError(
             iter->lineNo, iter->charNo,
             "out of range: half of " + iter->value + " must fit in 1 byte.");
       }
       currBlock.bytes.push_back(0x80);
-      currBlock.bytes.push_back(static_cast<uint8_t>(buffer / 2));
+      currBlock.bytes.push_back(
+          static_cast<uint8_t>(static_cast<int8_t>(buffer / 2)));
     } else if (iter->value == "beq") {  // beq form
       requireNext(iter, tokens.cend());
       ++iter;
@@ -468,16 +480,17 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
       expect(iter, ",");
       requireNext(iter, tokens.cend());
       ++iter;
-      unsigned long buffer = getNumber(iter);
+      long buffer = getNumberSigned(iter);
       if (buffer % 2 != 0) {
         throw ParseError(iter->lineNo, iter->charNo,
                          iter->value + " must be divisible by two.");
-      } else if (buffer / 2 > 0xff) {
+      } else if (buffer / 2 > 0x7f || buffer / 2 < -0x80) {
         throw ParseError(
             iter->lineNo, iter->charNo,
             "out of range: half of " + iter->value + " must fit in 1 byte.");
       }
-      currBlock.bytes.push_back(buffer / 2);
+      currBlock.bytes.push_back(
+          static_cast<uint8_t>(static_cast<int8_t>(buffer / 2)));
     } else if (iter->value == "bgt") {  // bgt form
       requireNext(iter, tokens.cend());
       ++iter;
@@ -487,16 +500,17 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
       expect(iter, ",");
       requireNext(iter, tokens.cend());
       ++iter;
-      unsigned long buffer = getNumber(iter);
+      long buffer = getNumberSigned(iter);
       if (buffer % 2 != 0) {
         throw ParseError(iter->lineNo, iter->charNo,
                          iter->value + " must be divisible by two.");
-      } else if (buffer / 2 > 0xff) {
+      } else if (buffer / 2 > 0x7f || buffer / 2 < -0x80) {
         throw ParseError(
             iter->lineNo, iter->charNo,
             "out of range: half of " + iter->value + " must fit in 1 byte.");
       }
-      currBlock.bytes.push_back(buffer / 2);
+      currBlock.bytes.push_back(
+          static_cast<uint8_t>(static_cast<int8_t>(buffer / 2)));
     } else if (iter->value == "gpc") {  // gpc form
       currBlock.bytes.push_back(0x6F);
       requireNext(iter, tokens.cend());
