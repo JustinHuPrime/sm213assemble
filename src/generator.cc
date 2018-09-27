@@ -129,31 +129,21 @@ void expect(const const_iter& iter, const string& expected,
 }
 
 unsigned long getNumber(const const_iter& iter) {
-  if (all_of(iter->value.cbegin(), iter->value.cend(),
-             isdigit)) {  // decimal number
-    return stoul(iter->value);
-  } else if (iter->value.find("0x") == 0 &&
-             all_of(iter->value.cbegin() + 2, iter->value.cend(), [](char c) {
-               return isdigit(c) || ('a' <= c && c <= 'f') ||
-                      ('A' <= c && c <= 'F');
-             })) {  // hex number
-    return stoul(iter->value.substr(2), nullptr, 16);
-  } else {
+  size_t eidx;
+  unsigned long buffer = stoul(iter->value, &eidx, 0);
+  if (eidx != iter->value.length()) {
     badToken(iter);
+  } else {
+    return buffer;
   }
 }
 long getNumberSigned(const const_iter& iter) {
-  if (all_of(iter->value.cbegin(), iter->value.cend(),
-             isdigit)) {  // decimal number
-    return stol(iter->value);
-  } else if (iter->value.find("0x") == 0 &&
-             all_of(iter->value.cbegin() + 2, iter->value.cend(), [](char c) {
-               return isdigit(c) || ('a' <= c && c <= 'f') ||
-                      ('A' <= c && c <= 'F');
-             })) {  // hex number
-    return stol(iter->value.substr(2), nullptr, 16);
-  } else {
+  size_t eidx;
+  long buffer = stol(iter->value, &eidx, 0);
+  if (eidx != iter->value.length()) {
     badToken(iter);
+  } else {
+    return buffer;
   }
 }
 void addInt(uint32_t number, Block& b) {
@@ -170,7 +160,7 @@ uint32_t getInt(const const_iter& iter) {
   return static_cast<uint32_t>(buffer);
 }
 uint8_t getOneReg(const_iter& iter) {
-  if (iter->value.size() != 2 || iter->value[0] != 'r' ||
+  if (iter->value.length() != 2 || iter->value[0] != 'r' ||
       (iter->value[1] < '0' || iter->value[1] > '7'))
     throw ParseError(iter->lineNo, iter->charNo,
                      "Expected r[0-7], got '" + iter->value + "'.");
