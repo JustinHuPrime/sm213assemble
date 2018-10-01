@@ -42,11 +42,19 @@ struct Token {
 class FileOpenError : public exception {
  public:
   FileOpenError() noexcept = default;
+  FileOpenError(const FileOpenError&) noexcept = default;
+
+  FileOpenError& operator=(const FileOpenError&) noexcept = default;
+
   const char* what() const noexcept override;
 };
 class IllegalCharacter : public exception {
  public:
   IllegalCharacter(char character, unsigned line, unsigned column) noexcept;
+  IllegalCharacter(const IllegalCharacter&) noexcept = default;
+
+  IllegalCharacter& operator=(const IllegalCharacter&) noexcept = default;
+
   const char* what() const noexcept override;
 
  private:

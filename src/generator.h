@@ -35,6 +35,10 @@ using std::vector;
 class ParseError : public exception {
  public:
   ParseError(unsigned lineNo, unsigned charNo, string msg) noexcept;
+  ParseError(const ParseError&) noexcept = default;
+
+  ParseError& operator=(const ParseError&) noexcept = default;
+
   const char* what() const noexcept override;
 
  private:
