@@ -616,7 +616,17 @@ vector<uint8_t> generateBinary(const vector<Token>& tokens) {
           ++iter;
           currBlock.bytes.push_back(0xb0);
           currBlock.bytes.push_back(0x0);
-          addInt(getInt(iter), currBlock);
+          uint32_t address;
+          if (validLabel(iter->value)) {
+            address = 0x5a5a5a5a;  // magic number - 0x5--- is an invalid opcode
+            labelUses.push_back(
+                pair<uint32_t, tuple<string, unsigned, unsigned>>(
+                    currPos, tuple<string, unsigned, unsigned>(
+                                 iter->value, iter->lineNo, iter->charNo)));
+          } else {
+            address = getInt(iter);
+          }
+          addInt(address, currBlock);
           currPos += 4;
           // j const
         }
