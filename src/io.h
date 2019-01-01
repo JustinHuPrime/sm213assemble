@@ -15,14 +15,14 @@
 // You should have received a copy of the GNU General Public License along with
 // the SM213 assembler.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SM213ASSEMBLER_IO_H_
-#define SM213ASSEMBLER_IO_H_
+#ifndef SM213ASSEMBLE_IO_H_
+#define SM213ASSEMBLE_IO_H_
 
 #include <fstream>
 #include <stdexcept>
 #include <vector>
 
-namespace sm213assembler::io {
+namespace sm213assemble::io {
 namespace {
 using std::exception;
 using std::ifstream;
@@ -63,6 +63,6 @@ class IllegalCharacter : public exception {
 
 void writeBinary(const vector<uint8_t>&, const string&);
 vector<Token> tokenize(ifstream&);
-}  // namespace sm213assembler::io
+}  // namespace sm213assemble::io
 
-#endif  // SM213ASSEMBLER_IO_H_
+#endif  // SM213ASSEMBLE_IO_H_

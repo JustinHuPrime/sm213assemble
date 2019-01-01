@@ -15,17 +15,17 @@
 // You should have received a copy of the GNU General Public License along with
 // the SM213 assembler.  If not, see <https://www.gnu.org/licenses/>.
 
-#ifndef SM213ASSEMBLER_MODEL_GENERATOR_H_
-#define SM213ASSEMBLER_MODEL_GENERATOR_H_
+#ifndef SM213ASSEMBLE_MODEL_GENERATOR_H_
+#define SM213ASSEMBLE_MODEL_GENERATOR_H_
 
 #include "io.h"
 
 #include <fstream>
 #include <vector>
 
-namespace sm213assembler::model {
+namespace sm213assemble::model {
 namespace {
-using sm213assembler::io::Token;
+using sm213assemble::io::Token;
 using std::exception;
 using std::ofstream;
 using std::string;
@@ -82,6 +82,6 @@ vector<uint8_t> generateBinary(const vector<Token>&);
 //                   | br <HexLiteral, / by 2, 2's c [0x80, 0x7f]>
 //                   | beq <Register> , <HexLiteral, / by 2, 2's c [0x80, 0x7f]>
 //                   | bgt <Register> , <HexLiteral, / by 2, 2's c [0x80, 0x7f]>
-}  // namespace sm213assembler::model
+}  // namespace sm213assemble::model
 
-#endif  // SM213ASSEMBLER_MODEL_GENERATOR_H_
+#endif  // SM213ASSEMBLE_MODEL_GENERATOR_H_

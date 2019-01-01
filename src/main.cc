@@ -27,13 +27,13 @@
 #include <vector>
 
 namespace {
-using sm213assembler::io::FileOpenError;
-using sm213assembler::io::IllegalCharacter;
-using sm213assembler::io::Token;
-using sm213assembler::io::tokenize;
-using sm213assembler::io::writeBinary;
-using sm213assembler::model::generateBinary;
-using sm213assembler::model::ParseError;
+using sm213assemble::io::FileOpenError;
+using sm213assemble::io::IllegalCharacter;
+using sm213assemble::io::Token;
+using sm213assemble::io::tokenize;
+using sm213assemble::io::writeBinary;
+using sm213assemble::model::generateBinary;
+using sm213assemble::model::ParseError;
 using std::cerr;
 using std::ifstream;
 using std::ofstream;

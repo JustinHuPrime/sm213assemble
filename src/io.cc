@@ -19,7 +19,7 @@
 
 #include <algorithm>
 
-namespace sm213assembler::io {
+namespace sm213assemble::io {
 namespace {
 using std::find;
 using std::to_string;
@@ -108,4 +108,4 @@ void writeBinary(const vector<uint8_t>& binary, const string& fn) {
   fout.close();
   return;
 }
-}  // namespace sm213assembler::io
+}  // namespace sm213assemble::io
